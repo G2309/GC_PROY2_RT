@@ -5,11 +5,11 @@ Gustavo Adolfo Cruz Bardales
 Gráficas por Computadora
 ---
 ## Dependencias
--Cargo
+- Cargo
 ---
 ## ¿Cómo ejecutar el proyecto?
-sh´´´
+```sh
 cargo build --release
 ./target/release/GC-PROY2_RT
-´´´
+```
 ---
