@@ -1,6 +1,3 @@
-//                          Color class
-//                          Gustavo Cruz
-//                          #22779
 #[derive(Debug, Clone, Copy)]
 pub struct Color {
     pub r: u8,
