@@ -3,7 +3,6 @@
 //                          # 22779
 use crate::color::Color;
 use crate::bitmap::write_bmp_file;
-use crate::texture::Texture;
 
 pub struct FrameBuffer {
     pub width: usize,
