@@ -2,6 +2,7 @@ use image::{DynamicImage, GenericImageView};
 use crate::color::Color;
 use std::rc::Rc;
 
+#[derive(Debug, Clone)]
 pub struct Texture {
     pub image: Rc<DynamicImage>,
 }

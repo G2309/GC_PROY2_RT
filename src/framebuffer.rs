@@ -2,7 +2,6 @@
 //                          Gustavo Cruz
 //                          # 22779
 use crate::color::Color;
-use crate::bitmap::write_bmp_file;
 
 pub struct FrameBuffer {
     pub width: usize,
@@ -32,7 +31,6 @@ impl FrameBuffer {
     pub fn point(&mut self, x: usize, y: usize) {
         let adjusted_y = self.height - 1 - y;
         self.buffer[self.width * y + x] = self.current_color;
-        //self.buffer[self.width * y + x] = self.current_color;
     }
     // Establece el color de fondo
     pub fn set_background_color(&mut self, color: Color) {

@@ -2,6 +2,7 @@ use crate::color::Color;
 use crate::texture::Texture;
 use std::rc::Rc;
 
+#[derive(Debug, Clone)]
 pub struct Material {
     pub diffuse: Color,
     pub specular: f32,
