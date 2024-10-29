@@ -5,6 +5,8 @@ mod cube;
 mod material;
 mod texture;
 mod ray_intersect;
+mod light;
+mod square;
 
 fn main() {
     println!("Proyecto 02 GC")
