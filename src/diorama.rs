@@ -13,17 +13,17 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
 
     // Material
     let ice = Rc::new(Material::new(
-        Color::new(30, 30, 30), 
+        Color::new(37, 150, 190), 
         80.0, 
-        [0.6, 0.4, 0.3, 0.0], 
-        0.0, 
+        [0.5, 0.6, 0.5, 0.0], 
+        1.3, 
         Some(ice_texture), 
-        Color::new(0,0,0),
+        Color::new(5,10,50),
     ));
     let snow = Rc::new(Material::new(
-        Color::new(30, 30, 30), 
-        80.0, 
-        [0.6, 0.4, 0.3, 0.0], 
+        Color::new(255, 255, 255), 
+        10.0, 
+        [0.8, 0.1, 0.1, 0.0], 
         0.0, 
         Some(snow), 
         Color::new(0,0,0),
@@ -32,13 +32,18 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
 
        let cube_data = [
 
-           //suelo
-           (Vec3::new(-1.0, 0.8, -3.4), Rc::clone(&ice)),
-           (Vec3::new(-1.4, 0.8, -3.4), Rc::clone(&ice)),
-           (Vec3::new(-1.8, 0.8, -3.4), Rc::clone(&ice)),
-           (Vec3::new(-2.2, 0.8, -3.4), Rc::clone(&ice)),
-           (Vec3::new(-2.6, 0.8, -3.4), Rc::clone(&ice)),
-           (Vec3::new(-3.0, 0.8, -3.4), Rc::clone(&ice)),
+           // Arch - r0
+           (Vec3::new(4.6, 0.9, -5.0), Rc::clone(&ice)),
+           (Vec3::new(-8.6, 0.9, -5.0), Rc::clone(&ice)),
+           (Vec3::new(4.2, 0.9, -5.0), Rc::clone(&ice)),
+           (Vec3::new(-8.2, 0.9, -5.0), Rc::clone(&ice)),
+           // Arch - r1
+           (Vec3::new(4.2, 1.3, -5.0), Rc::clone(&ice)),
+           (Vec3::new(-8.2, 1.3, -5.0), Rc::clone(&ice)),
+           (Vec3::new(3.8, 1.3, -5.0), Rc::clone(&ice)),
+           (Vec3::new(-7.8, 1.3, -5.0), Rc::clone(&ice)),
+           (Vec3::new(3.4, 1.3, -5.0), Rc::clone(&ice)),
+           (Vec3::new(-7.4, 1.3, -5.0), Rc::clone(&ice)),
     ];
 
     let mut objects: Vec<Box<dyn RayIntersect>> = Vec::new();
@@ -54,7 +59,7 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
 
     let ground = Box::new(Square {
         center: Vec3::new(-2.0, 0.7, -4.0), 
-        size: 10.0, 
+        size: 13.6, 
         material: Rc::clone(&snow),
     }) as Box<dyn RayIntersect>;
 
