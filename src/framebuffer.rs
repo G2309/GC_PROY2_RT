@@ -44,5 +44,8 @@ impl FrameBuffer {
     pub fn set_current_color(&mut self, color: Color) {
         self.current_color = color;
     }
+    pub fn as_u32_buffer(&self) -> Vec<u32> {
+        self.buffer.iter().map(|color| color.to_hex()).collect()
+    }
 }
 

@@ -1,3 +1,6 @@
+use std::ops::Mul;
+use std::ops::Add;
+
 #[derive(Debug, Clone, Copy)]
 pub struct Color {
     pub r: u8,
@@ -7,7 +10,7 @@ pub struct Color {
 
 impl Color {
     // Constructor que recibe valores RGB
-    pub fn new(r: u8, g: u8, b: u8) -> Self {
+    pub const fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
     }
 
@@ -52,3 +55,26 @@ impl Color {
     }
 }
 
+impl Mul<f32> for Color {
+    type Output = Color;
+
+    fn mul(self, scalar: f32) -> Color {
+        Color {
+            r: (self.r as f32 * scalar).clamp(0.0, 255.0) as u8,
+            g: (self.g as f32 * scalar).clamp(0.0, 255.0) as u8,
+            b: (self.b as f32 * scalar).clamp(0.0, 255.0) as u8,
+        }
+    }
+}
+
+impl Add for Color {
+    type Output = Color;
+
+    fn add(self, other: Color) -> Color {
+        Color {
+            r: self.r.saturating_add(other.r),
+            g: self.g.saturating_add(other.g),
+            b: self.b.saturating_add(other.b),
+        }
+    }
+}
