@@ -9,6 +9,7 @@ use crate::square::Square;
 
 pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
     let ice_texture = Rc::new(Texture::new("src/textures/blue_ice.png"));
+    let snow = Rc::new(Texture::new("src/textures/snow.png"));
 
     // Material
     let ice = Rc::new(Material::new(
@@ -17,6 +18,14 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
         [0.6, 0.4, 0.3, 0.0], 
         0.0, 
         Some(ice_texture), 
+        Color::new(0,0,0),
+    ));
+    let snow = Rc::new(Material::new(
+        Color::new(30, 30, 30), 
+        80.0, 
+        [0.6, 0.4, 0.3, 0.0], 
+        0.0, 
+        Some(snow), 
         Color::new(0,0,0),
     ));
 
@@ -46,7 +55,7 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
     let ground = Box::new(Square {
         center: Vec3::new(-2.0, 0.7, -4.0), 
         size: 10.0, 
-        material: Rc::clone(&ice),
+        material: Rc::clone(&snow),
     }) as Box<dyn RayIntersect>;
 
     objects.push(ground);
