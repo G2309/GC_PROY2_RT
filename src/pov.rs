@@ -30,7 +30,7 @@ impl POV {
         let radius = radius_vector.magnitude();
 
         let current_yaw = radius_vector.z.atan2(radius_vector.x);
-        let radius_xz = (radius_vector.x**2 + radius_vector.z**2).sqrt();
+        let radius_xz = (radius_vector.x* radius_vector.x + radius_vector.z * radius_vector.z).sqrt();
         let current_pitch = (-radius_vector.y).atan2(radius_xz);
 
         let new_yaw = (current_yaw + delta_yaw) % (2.0 * PI);

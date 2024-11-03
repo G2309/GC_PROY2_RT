@@ -9,5 +9,4 @@ mod light;
 mod square;
 
 fn main() {
-    println!("Proyecto 02 GC")
 }
