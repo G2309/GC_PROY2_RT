@@ -26,9 +26,7 @@ pub fn reflect(incident: &Vec3, normal: &Vec3) -> Vec3 {
 
 pub fn refract(incident: &Vec3, normal: &Vec3, eta_t: f32) -> Vec3 {
     let cosi = -incident.dot(normal).max(-1.0).min(1.0);
-    
     let (n_cosi, eta, n_normal);
-
     if cosi < 0.0 {
         n_cosi = -cosi;
         eta = 1.0 / eta_t;
@@ -38,9 +36,7 @@ pub fn refract(incident: &Vec3, normal: &Vec3, eta_t: f32) -> Vec3 {
         eta = eta_t;
         n_normal = *normal;
     }
-    
     let k = 1.0 - eta * eta * (1.0 - n_cosi * n_cosi);
-    
     if k < 0.0 {
         reflect(incident, &n_normal)
     } else {
@@ -55,10 +51,8 @@ pub fn cast_shadow(
 ) -> f32 {
     let light_dir = (light.position - intersect.point).normalize();
     let light_distance = (light.position - intersect.point).magnitude();
-
     let shadow_ray_origin = offset_origin(intersect, &light_dir);
     let mut shadow_intensity = 0.0;
-
     for object in objects {
         let shadow_intersect = object.ray_intersect(&shadow_ray_origin, &light_dir);
         if shadow_intersect.is_intersecting && shadow_intersect.distance < light_distance {
@@ -67,7 +61,6 @@ pub fn cast_shadow(
             break;
         }
     }
-
     shadow_intensity
 }
 
@@ -75,16 +68,12 @@ pub fn calculate_uv(normal: Vec3, point: Vec3, size: f32) -> (f32, f32) {
     let norm_point = point / size;
 
     let (u, v) = if normal.y.abs() > normal.x.abs() && normal.y.abs() > normal.z.abs() {
-        // Cara superior o inferior
         (norm_point.x * 0.5 + 0.5, norm_point.z * 0.5 + 0.5)
     } else if normal.x.abs() > normal.y.abs() && normal.x.abs() > normal.z.abs() {
-        // Cara lateral (x)
         (norm_point.z * 0.5 + 0.5, norm_point.y * 0.5 + 0.5)
     } else {
-        // Cara lateral (z)
         (norm_point.x * 0.5 + 0.5, norm_point.y * 0.5 + 0.5)
     };
-
     (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
 }
 

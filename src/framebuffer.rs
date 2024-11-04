@@ -47,5 +47,11 @@ impl FrameBuffer {
     pub fn as_u32_buffer(&self) -> Vec<u32> {
         self.buffer.iter().map(|color| color.to_hex()).collect()
     }
+    pub fn set_pixel(&mut self, x: usize, y: usize, color: Color) {
+        let index = y * self.width + x;
+        if index < self.buffer.len() {
+            self.buffer[index] = color;
+        }
+    }
 }
 
