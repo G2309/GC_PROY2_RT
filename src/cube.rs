@@ -1,12 +1,12 @@
 use nalgebra_glm::Vec3;
 use crate::ray_intersect::{RayIntersect, Intersect};
 use crate::material::Material;
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub struct Cube {
     pub center: Vec3,
     pub size: f32,
-    pub material: Rc<Material>, 
+    pub material: Arc<Material>, 
 }
 
 impl RayIntersect for Cube {
@@ -80,6 +80,6 @@ impl RayIntersect for Cube {
         } else if (point.z - max.z).abs() < 1e-4 {
             normal = Vec3::new(0.0, 0.0, 1.0);
         }
-        Intersect::new(point, normal, t_min, self.material.clone())
+        Intersect::new(point, normal, t_min, Arc::clone(&self.material))
     }
 }

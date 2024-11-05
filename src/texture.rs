@@ -1,15 +1,15 @@
 use image::{DynamicImage, GenericImageView};
 use crate::color::Color;
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct Texture {
-    pub image: Rc<DynamicImage>,
+    pub image: Arc<DynamicImage>,
 }
 
 impl Texture {
     pub fn new(path: &str) -> Self {
-        let image = Rc::new(image::open(path).expect("No se ha podido cargar la imagen"));
+        let image = Arc::new(image::open(path).expect("No se ha podido cargar la imagen"));
         Texture { image }
     }
 

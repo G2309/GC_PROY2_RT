@@ -1,4 +1,5 @@
 use nalgebra_glm::Vec3;
+use std::sync::Arc; // Asegúrate de importar Arc
 use crate::color::Color;
 use crate::Intersect;
 use crate::RayIntersect;
@@ -47,7 +48,7 @@ pub fn refract(incident: &Vec3, normal: &Vec3, eta_t: f32) -> Vec3 {
 pub fn cast_shadow(
     intersect: &Intersect,
     light: &Light,
-    objects: &[Box<dyn RayIntersect>],
+    objects: &[Arc<dyn RayIntersect + Send + Sync>],
 ) -> f32 {
     let light_dir = (light.position - intersect.point).normalize();
     let light_distance = (light.position - intersect.point).magnitude();
@@ -86,3 +87,4 @@ impl Light {
         }
     }
 }
+

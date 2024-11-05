@@ -1,12 +1,12 @@
 use nalgebra_glm::Vec3;
-use std::rc::Rc;
 use crate::material::Material;
 use crate::ray_intersect::{RayIntersect, Intersect};
+use std::sync::Arc;
 
 pub struct Square {  
     pub center: Vec3,
     pub size: f32, 
-    pub material: Rc<Material>,
+    pub material: Arc<Material>,
 }
 
 impl Square {
@@ -33,7 +33,7 @@ impl RayIntersect for Square {
                         point: hit_point,
                         normal,
                         distance: t,
-                        material: Rc::clone(&self.material), 
+                        material: Arc::clone(&self.material), 
                         is_intersecting: true, 
                     };
                 }
@@ -43,7 +43,7 @@ impl RayIntersect for Square {
             point: Vec3::new(0.0, 0.0, 0.0), 
             normal: Vec3::new(0.0, 0.0, 0.0),
             distance: f32::INFINITY,
-            material: Rc::clone(&self.material), 
+            material: Arc::clone(&self.material), 
             is_intersecting: false, 
         }
     }

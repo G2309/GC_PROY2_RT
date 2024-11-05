@@ -9,7 +9,7 @@ mod texture;
 mod diorama;
 mod square;
 
-use minifb::{ Window, WindowOptions, Key };
+use minifb::{Window, WindowOptions, Key};
 use nalgebra_glm::{Vec3, normalize};
 use std::time::Duration;
 use std::f32::consts::PI;
@@ -18,7 +18,10 @@ use crate::color::Color;
 use crate::ray_intersect::{Intersect, RayIntersect};
 use crate::framebuffer::FrameBuffer;
 use crate::pov::POV;
-use crate::light::{Light, refract, reflect, offset_origin, calculate_uv, cast_shadow };
+use crate::light::{Light, refract, reflect, offset_origin, calculate_uv, cast_shadow};
+use rayon::prelude::*;
+use rayon::ThreadPoolBuilder;
+use std::sync::{Arc, Mutex};
 
 const DAY_SKY_COLOR: Color = Color::new(68, 142, 228);
 const NIGHT_SKY_COLOR: Color = Color::new(25, 25, 112);
@@ -26,7 +29,7 @@ const NIGHT_SKY_COLOR: Color = Color::new(25, 25, 112);
 pub fn cast_ray(
     ray_origin: &Vec3,
     ray_direction: &Vec3,
-    objects: &[Box<dyn RayIntersect>],
+    objects: &[Arc<dyn RayIntersect + Sync + Send>], // Cambiado para aceptar Arc
     light: &Light,
     depth: u32,
     is_day: bool,
@@ -46,12 +49,9 @@ pub fn cast_ray(
         }
     }
 
-    let is_daytime = is_day;
     if !intersect.is_intersecting {
-        return if is_daytime { DAY_SKY_COLOR } else { NIGHT_SKY_COLOR };
+        return if is_day { DAY_SKY_COLOR } else { NIGHT_SKY_COLOR };
     }
-    
-
 
     let light_dir = (light.position - intersect.point).normalize();
     let view_dir = (ray_origin - intersect.point).normalize();
@@ -60,9 +60,8 @@ pub fn cast_ray(
     let shadow_intensity = cast_shadow(&intersect, light, objects);
     let light_intensity = light.intensity * (1.0 - shadow_intensity);
 
-    const DEFAULT_CUBE_SIZE: f32 = 0.5; // Cambia esto por el tamaño que prefieras
+    const DEFAULT_CUBE_SIZE: f32 = 0.5;
     let uv = calculate_uv(intersect.normal, intersect.point, DEFAULT_CUBE_SIZE);
-
 
     let texture_diffuse = intersect.material.texture.as_ref().map_or(intersect.material.diffuse, |texture| {
         texture.sample(uv)
@@ -73,40 +72,57 @@ pub fn cast_ray(
     let specular_intensity = view_dir.dot(&reflect_dir).max(0.0).powf(intersect.material.specular);
     let specular = light.color * intersect.material.albedo[1] * specular_intensity * light_intensity;
 
-    let mut reflect_color = Color::new(0,0,0);
     let reflectivity = intersect.material.albedo[2];
-    if reflectivity > 0.0 {
+    let reflect_color = if reflectivity > 0.0 {
         let reflect_dir = reflect(&ray_direction, &intersect.normal).normalize();
         let reflect_origin = offset_origin(&intersect, &reflect_dir);
-        reflect_color = cast_ray(&reflect_origin, &reflect_dir, objects, light, depth + 1, is_day);
-    }
+        cast_ray(&reflect_origin, &reflect_dir, objects, light, depth + 1, is_day)
+    } else {
+        Color::new(0, 0, 0)
+    };
 
-
-    let mut refract_color = Color::new(0,0,0);
     let transparency = intersect.material.albedo[3];
-    if transparency > 0.0 {
+    let refract_color = if transparency > 0.0 {
         let refract_dir = refract(&ray_direction, &intersect.normal, intersect.material.refractive_index);
         let refract_origin = offset_origin(&intersect, &refract_dir);
-        refract_color = cast_ray(&refract_origin, &refract_dir, objects, light, depth + 1, is_day);
-    }
+        cast_ray(&refract_origin, &refract_dir, objects, light, depth + 1, is_day)
+    } else {
+        Color::new(0, 0, 0)
+    };
 
     let emissive = intersect.material.emmisive_color;
 
     (diffuse + specular) * (1.0 - reflectivity - transparency) + (reflect_color * reflectivity) + (refract_color * transparency) + emissive
 }
 
-pub fn render(framebuffer: &mut FrameBuffer, objects: &[Box<dyn RayIntersect>], pov: &POV, light: &Light, is_day: bool) {
-    let width = framebuffer.width as f32;
-    let height = framebuffer.height as f32;
-    let aspect_ratio = width / height;
-    let fov = PI / 3.0;
-    let perspective_scale = (fov * 0.5).tan();
+pub fn render(
+    framebuffer: Arc<Mutex<FrameBuffer>>,
+    objects: &[Arc<dyn RayIntersect + Sync + Send>],
+    pov: &POV,
+    light: &Light,
+    is_day: bool,
+) {
+    let width;
+    let height;
+    
+    {
+        let framebuffer_lock = framebuffer.lock().unwrap(); // Bloquea el framebuffer una vez
+        width = framebuffer_lock.width;
+        height = framebuffer_lock.height;
+    }
 
-    // Iteramos sobre cada fila (y) en paralelo
-    (0..framebuffer.height).into_iter().for_each(|y| {
-        for x in 0..framebuffer.width {
-            let screen_x = (2.0 * x as f32) / width - 1.0;
-            let screen_y = -(2.0 * y as f32) / height + 1.0;
+    // Crear un vector para almacenar los colores de los píxeles como Arc<Mutex<Vec<Color>>>
+    let pixel_colors = Arc::new(Mutex::new(vec![Color::new(0, 0, 0); (width * height) as usize]));
+
+    (0..height).into_par_iter().for_each(|y| {
+        let pixel_colors = pixel_colors.clone(); // Clonamos el Arc
+        for x in 0..width {
+            let screen_x = (2.0 * x as f32) / width as f32 - 1.0;
+            let screen_y = -(2.0 * y as f32) / height as f32 + 1.0;
+
+            let aspect_ratio = width as f32 / height as f32;
+            let fov = PI / 3.0;
+            let perspective_scale = (fov * 0.5).tan();
 
             let screen_x = screen_x * aspect_ratio * perspective_scale;
             let screen_y = screen_y * perspective_scale;
@@ -116,20 +132,38 @@ pub fn render(framebuffer: &mut FrameBuffer, objects: &[Box<dyn RayIntersect>], 
 
             let pixel_color = cast_ray(&pov.eye, &rotated_direction, objects, light, 0, is_day);
 
-            // Bloque de acceso a framebuffer para asegurar que la escritura es correcta
-            framebuffer.set_pixel(x, y, pixel_color);
+            // Guardar el color del píxel en el vector
+            let mut colors = pixel_colors.lock().unwrap(); // Bloquear para acceso mutable
+            colors[(y * width + x) as usize] = pixel_color; // Actualizar el color
         }
     });
+
+    // Después de la iteración paralela, actualizar el framebuffer
+    let colors = pixel_colors.lock().unwrap(); // Bloquear el vector final
+    let mut framebuffer_lock = framebuffer.lock().unwrap(); // Bloquear el framebuffer
+    for y in 0..height {
+        for x in 0..width {
+            framebuffer_lock.set_pixel(x, y, colors[(y * width + x) as usize]);
+        }
+    }
 }
 
+
 fn main() {
+    let objects: Vec<Arc<dyn RayIntersect + Send + Sync>> = diorama::create_diorama()
+        .into_iter()
+        .collect(); // Simplemente coleccionamos los objetos, no los envuelvas en otro Arc.
+
+    ThreadPoolBuilder::new().num_threads(8).build_global().unwrap();
+
     let window_width = 800;
     let window_height = 600;
     let framebuffer_width = 800;
     let framebuffer_height = 600;
     let frame_delay = Duration::from_millis(16);
 
-    let mut framebuffer = FrameBuffer::new(framebuffer_width, framebuffer_height);
+    let framebuffer = Arc::new(Mutex::new(FrameBuffer::new(framebuffer_width, framebuffer_height)));
+    let framebuffer_lock = framebuffer.lock().unwrap();
 
     let mut window = Window::new(
         "Refractor",
@@ -137,8 +171,6 @@ fn main() {
         window_height,
         WindowOptions::default(),
     ).unwrap();
-
-    let objects = diorama::create_diorama();
 
     let mut pov = POV::new(
         Vec3::new(-1.5, 2.0, 5.0), 
@@ -152,12 +184,10 @@ fn main() {
         1.0
     );
 
-    let rotation_speed = PI/10.0;
-
+    let rotation_speed = PI / 10.0;
     let mut is_day = true;
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-
         if window.is_key_down(Key::Left) {
             pov.orbit(rotation_speed, 0.0); 
         }
@@ -177,29 +207,32 @@ fn main() {
         if window.is_key_down(Key::W) {
             pov.zoom(0.4); 
         }
-    
+
         if window.is_key_down(Key::S) {
             pov.zoom(-0.4); 
         }
 
-
         if window.is_key_down(Key::T) {
-            is_day = !is_day; 
-
-        if is_day {
-            light.position = Vec3::new(2.0, 5.0, 5.0); 
-            light.color = Color::new(255, 255, 255); 
-        } else {
-            light.position = Vec3::new(-2.0, 5.0, 5.0); 
-            light.color = Color::new(100, 100, 200); 
+            is_day = !is_day;
+            light.position = if is_day {
+                Vec3::new(2.0, 5.0, 5.0)
+            } else {
+                Vec3::new(-2.0, 5.0, 5.0)
+            };
+            light.color = if is_day {
+                Color::new(255, 255, 255)
+            } else {
+                Color::new(100, 100, 200)
+            };
         }
-    }
-        render(&mut framebuffer, &objects.as_slice(), &pov, &light, is_day);
+
+        render(framebuffer.clone(), &objects, &pov, &light, is_day);
 
         window
-            .update_with_buffer(&framebuffer.as_u32_buffer(), framebuffer_width, framebuffer_height)
-            .unwrap();
+    .update_with_buffer(&framebuffer_lock.as_u32_buffer(), framebuffer_width, framebuffer_height)
+    .unwrap();
 
         std::thread::sleep(frame_delay);
     }
-}   
+}
+
