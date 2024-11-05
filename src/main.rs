@@ -102,7 +102,6 @@ pub fn render(framebuffer: &mut FrameBuffer, objects: &[Box<dyn RayIntersect>], 
     let fov = PI / 3.0;
     let perspective_scale = (fov * 0.5).tan();
 
-    // Iteramos sobre cada fila (y) en paralelo
     (0..framebuffer.height).into_iter().for_each(|y| {
         for x in 0..framebuffer.width {
             let screen_x = (2.0 * x as f32) / width - 1.0;
@@ -116,7 +115,6 @@ pub fn render(framebuffer: &mut FrameBuffer, objects: &[Box<dyn RayIntersect>], 
 
             let pixel_color = cast_ray(&pov.eye, &rotated_direction, objects, light, 0, is_day);
 
-            // Bloque de acceso a framebuffer para asegurar que la escritura es correcta
             framebuffer.set_pixel(x, y, pixel_color);
         }
     });
@@ -153,53 +151,64 @@ fn main() {
     );
 
     let rotation_speed = PI/10.0;
-
     let mut is_day = true;
+    let mut should_render = false; // Controla cuándo se renderizan los objetos en el framebuffer
+
+    // Renderizar una vez al inicio para tener un primer frame
+    render(&mut framebuffer, &objects.as_slice(), &pov, &light, is_day);
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
 
+        // Control de la cámara y la luz
         if window.is_key_down(Key::Left) {
             pov.orbit(rotation_speed, 0.0); 
         }
-
         if window.is_key_down(Key::Right) {
             pov.orbit(-rotation_speed, 0.0);
         }
-
         if window.is_key_down(Key::Up) {
             pov.orbit(0.0, -rotation_speed);
         }
-
         if window.is_key_down(Key::Down) {
             pov.orbit(0.0, rotation_speed);
         }
-
         if window.is_key_down(Key::W) {
             pov.zoom(0.4); 
         }
-    
         if window.is_key_down(Key::S) {
             pov.zoom(-0.4); 
         }
 
-
+        // Cambiar entre día y noche
         if window.is_key_down(Key::T) {
             is_day = !is_day; 
-
-        if is_day {
-            light.position = Vec3::new(2.0, 5.0, 5.0); 
-            light.color = Color::new(255, 255, 255); 
-        } else {
-            light.position = Vec3::new(-2.0, 5.0, 5.0); 
-            light.color = Color::new(100, 100, 200); 
+            if is_day {
+                light.position = Vec3::new(2.0, 5.0, 5.0); 
+                light.color = Color::new(255, 255, 255); 
+            } else {
+                light.position = Vec3::new(-2.0, 5.0, 5.0); 
+                light.color = Color::new(100, 100, 200); 
+            }
         }
-    }
-        render(&mut framebuffer, &objects.as_slice(), &pov, &light, is_day);
 
+        // Controlar el renderizado de objetos con la tecla R
+        if window.is_key_down(Key::R) {
+            should_render = true;  // Activar renderizado de objetos
+        } else {
+            should_render = false; // Desactivar cuando no se presiona 'R'
+        }
+
+        // Renderizar objetos solo si `should_render` es true
+        if should_render {
+            render(&mut framebuffer, &objects.as_slice(), &pov, &light, is_day);
+        }
+
+        // Actualizar el framebuffer en la ventana siempre
         window
             .update_with_buffer(&framebuffer.as_u32_buffer(), framebuffer_width, framebuffer_height)
             .unwrap();
 
         std::thread::sleep(frame_delay);
     }
-}   
+}
+
