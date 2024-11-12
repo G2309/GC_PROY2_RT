@@ -66,16 +66,16 @@ pub fn cast_shadow(
 
 pub fn calculate_uv(normal: Vec3, point: Vec3, size: f32) -> (f32, f32) {
     let norm_point = point / size;
-
-    let (u, v) = if normal.y.abs() > normal.x.abs() && normal.y.abs() > normal.z.abs() {
+    let (u, v) = if normal.y.abs() >= normal.x.abs() && normal.y.abs() >= normal.z.abs() {
         (norm_point.x * 0.5 + 0.5, norm_point.z * 0.5 + 0.5)
-    } else if normal.x.abs() > normal.y.abs() && normal.x.abs() > normal.z.abs() {
+    } else if normal.x.abs() >= normal.y.abs() && normal.x.abs() >= normal.z.abs() {
         (norm_point.z * 0.5 + 0.5, norm_point.y * 0.5 + 0.5)
     } else {
         (norm_point.x * 0.5 + 0.5, norm_point.y * 0.5 + 0.5)
     };
     (u.clamp(0.0, 1.0), v.clamp(0.0, 1.0))
 }
+
 
 impl Light {
     pub fn new(position: Vec3, color: Color, intensity: f32) -> Self {

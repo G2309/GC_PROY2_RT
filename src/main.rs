@@ -50,8 +50,6 @@ pub fn cast_ray(
     if !intersect.is_intersecting {
         return if is_daytime { DAY_SKY_COLOR } else { NIGHT_SKY_COLOR };
     }
-    
-
 
     let light_dir = (light.position - intersect.point).normalize();
     let view_dir = (ray_origin - intersect.point).normalize();
@@ -60,13 +58,13 @@ pub fn cast_ray(
     let shadow_intensity = cast_shadow(&intersect, light, objects);
     let light_intensity = light.intensity * (1.0 - shadow_intensity);
 
-    const DEFAULT_CUBE_SIZE: f32 = 0.5; // Cambia esto por el tamaño que prefieras
+    const DEFAULT_CUBE_SIZE: f32 = 0.5; 
     let uv = calculate_uv(intersect.normal, intersect.point, DEFAULT_CUBE_SIZE);
 
-
     let texture_diffuse = intersect.material.texture.as_ref().map_or(intersect.material.diffuse, |texture| {
-        texture.sample(uv)
+    texture.sample(uv)
     });
+
     let diffuse_intensity = intersect.normal.dot(&light_dir).max(0.0).min(1.0);
     let diffuse = texture_diffuse * intersect.material.albedo[0] * diffuse_intensity * light_intensity;
 
@@ -80,8 +78,6 @@ pub fn cast_ray(
         let reflect_origin = offset_origin(&intersect, &reflect_dir);
         reflect_color = cast_ray(&reflect_origin, &reflect_dir, objects, light, depth + 1, is_day);
     }
-
-
     let mut refract_color = Color::new(0,0,0);
     let transparency = intersect.material.albedo[3];
     if transparency > 0.0 {
