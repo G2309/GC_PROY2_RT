@@ -17,7 +17,7 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
     let ice = Rc::new(Material::new(
         Color::new(37, 150, 190), 
         80.0, 
-        [0.8, 0.6, 0.5, 0.0], 
+        [1.0, 0.6, 0.5, 0.0], 
         1.3, 
         Some(ice_texture), 
         Color::new(5,10,75),
@@ -33,7 +33,7 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
     let crying_obsidian = Rc::new(Material::new(
         Color::new(43, 1, 120), 
         10.0, 
-        [0.3, 0.5, 0.0, 0.0], 
+        [0.8, 0.5, 0.0, 0.0], 
         0.0, 
         Some(crying_obsidian_texture), 
         Color::new(131,8,228),
@@ -41,7 +41,7 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
     let  redstone_lamp = Rc::new(Material::new(
         Color::new(231, 183, 119), 
         8.0, 
-        [0.4, 0.6, 0.0, 0.0], 
+        [0.9, 0.6, 0.0, 0.0], 
         0.0, 
         Some(redstone_lamp_texture), 
         Color::new(255,57,0),
@@ -49,7 +49,7 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
 
 
        let cube_data = [
-            // House
+            // portal
             (Vec3::new(-1.0, 0.9, -5.0), Rc::clone(&redstone_lamp)),
             (Vec3::new(-1.0, 1.3, -5.0), Rc::clone(&redstone_lamp)),
             (Vec3::new(-1.0, 1.7, -5.0), Rc::clone(&redstone_lamp)),
@@ -68,7 +68,12 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
             (Vec3::new(-1.4, 2.9, -5.0), Rc::clone(&redstone_lamp)),
             (Vec3::new(-2.2, 3.3, -5.0), Rc::clone(&redstone_lamp)),
             (Vec3::new(-1.8, 3.3, -5.0), Rc::clone(&redstone_lamp)),
+            
 
+            (Vec3::new(-0.6, 0.9, -5.0), Rc::clone(&crying_obsidian)),
+            (Vec3::new(-0.6, 1.3, -5.0), Rc::clone(&crying_obsidian)),
+            (Vec3::new(-0.2, 0.9, -5.0), Rc::clone(&crying_obsidian)),
+            (Vec3::new(-0.2, 1.3, -5.0), Rc::clone(&crying_obsidian)),
 
            // Arch - r0
            (Vec3::new(2.6, 0.9, -3.0), Rc::clone(&ice)),
@@ -287,7 +292,7 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
            //Arch - r18
            (Vec3::new(-1.8, 9.3, -3.0), Rc::clone(&ice)),
            (Vec3::new(-2.2, 9.3, -3.0), Rc::clone(&ice)),
-           (Vec3::new(-2.2, 9.7, -3.0), Rc::clone(&crying_obsidian)),
+           (Vec3::new(-2.2, 9.7, -3.0), Rc::clone(&ice)),
            (Vec3::new(-2.6, 9.3, -3.0), Rc::clone(&ice)),
     ];
 

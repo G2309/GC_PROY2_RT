@@ -1,12 +1,12 @@
 use nalgebra_glm::Vec3;
-use crate::ray_intersect::{RayIntersect, Intersect};
+use crate::ray_intersect::{Intersect,RayIntersect};
 use crate::material::Material;
 use std::rc::Rc;
 
 pub struct Cube {
     pub center: Vec3,
     pub size: f32,
-    pub material: Rc<Material>, 
+    pub material: Rc<Material>,
 }
 
 impl RayIntersect for Cube {
@@ -17,14 +17,12 @@ impl RayIntersect for Cube {
 
         let mut t_min = (min.x - ray_origin.x) / ray_direction.x;
         let mut t_max = (max.x - ray_origin.x) / ray_direction.x;
-
         if t_min > t_max {
             std::mem::swap(&mut t_min, &mut t_max);
         }
 
         let mut ty_min = (min.y - ray_origin.y) / ray_direction.y;
         let mut ty_max = (max.y - ray_origin.y) / ray_direction.y;
-
         if ty_min > ty_max {
             std::mem::swap(&mut ty_min, &mut ty_max);
         }
@@ -36,14 +34,12 @@ impl RayIntersect for Cube {
         if ty_min > t_min {
             t_min = ty_min;
         }
-
         if ty_max < t_max {
             t_max = ty_max;
         }
 
         let mut tz_min = (min.z - ray_origin.z) / ray_direction.z;
         let mut tz_max = (max.z - ray_origin.z) / ray_direction.z;
-
         if tz_min > tz_max {
             std::mem::swap(&mut tz_min, &mut tz_max);
         }
@@ -55,7 +51,6 @@ impl RayIntersect for Cube {
         if tz_min > t_min {
             t_min = tz_min;
         }
-
         if tz_max < t_max {
             t_max = tz_max;
         }
@@ -66,20 +61,37 @@ impl RayIntersect for Cube {
 
         let point = ray_origin + ray_direction * t_min;
         let mut normal = Vec3::zeros();
+        let mut u = 0.0;
+        let mut v = 0.0;
 
+        // Determinar la normal y las coordenadas u, v de textura según la cara de intersección
         if (point.x - min.x).abs() < 1e-4 {
             normal = Vec3::new(-1.0, 0.0, 0.0);
+            u = (point.z - min.z) / self.size;
+            v = (point.y - min.y) / self.size;
         } else if (point.x - max.x).abs() < 1e-4 {
             normal = Vec3::new(1.0, 0.0, 0.0);
+            u = (point.z - min.z) / self.size;
+            v = (point.y - min.y) / self.size;
         } else if (point.y - min.y).abs() < 1e-4 {
             normal = Vec3::new(0.0, -1.0, 0.0);
+            u = (point.x - min.x) / self.size;
+            v = (point.z - min.z) / self.size;
         } else if (point.y - max.y).abs() < 1e-4 {
             normal = Vec3::new(0.0, 1.0, 0.0);
+            u = (point.x - min.x) / self.size;
+            v = (point.z - min.z) / self.size;
         } else if (point.z - min.z).abs() < 1e-4 {
             normal = Vec3::new(0.0, 0.0, -1.0);
+            u = (point.x - min.x) / self.size;
+            v = (point.y - min.y) / self.size;
         } else if (point.z - max.z).abs() < 1e-4 {
             normal = Vec3::new(0.0, 0.0, 1.0);
+            u = (point.x - min.x) / self.size;
+            v = (point.y - min.y) / self.size;
         }
-        Intersect::new(point, normal, t_min, self.material.clone())
+
+        Intersect::new(point, normal, t_min, self.material.clone(), u, v)
     }
 }
+

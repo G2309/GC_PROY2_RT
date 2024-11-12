@@ -1,7 +1,7 @@
 use nalgebra_glm::Vec3;
 use crate::color::Color;
 use crate::Intersect;
-use crate::RayIntersect;
+use crate::ray_intersect::{RayIntersect};
 
 const ORIGIN_BIAS: f32 = 1e-4;
 

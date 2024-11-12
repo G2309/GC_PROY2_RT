@@ -23,7 +23,7 @@ impl Texture {
 
     pub fn get_pixel_color(&self, x: u32, y: u32) -> Color {
         if x >= self.width || y >= self.height {
-            return Color::new(255, 0, 0);
+            return Color::new(255, 0, 0); // Color de error
         }
         let pixel = self.image.get_pixel(x, y);
         Color::new(pixel[0], pixel[1], pixel[2])
@@ -36,7 +36,8 @@ impl Texture {
     }
 
     pub fn sample(&self, uv: (f32, f32)) -> Color {
-        self.get_color(uv.0, uv.1)
+        let (u, v) = uv;
+        self.get_color(u, v)
     }
 }
 
