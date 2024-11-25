@@ -43,13 +43,14 @@ impl Material {
     }
 
     pub fn get_diffuse(&self, u: f32, v: f32) -> Color {
-        if let Some(texture) = &self.texture {
-            let x = ((u * texture.width as f32).round() as u32).min(texture.width - 1);
-            let y = ((v * texture.height as f32).round() as u32).min(texture.height - 1);
-            texture.get_pixel_color(x, y)
-        } else {
-            self.diffuse
-        }
+    if let Some(texture) = &self.texture {
+        let x = ((u * (texture.width as f32 - 1.0)) as u32).min(texture.width - 1);
+        let y = ((v * (texture.height as f32 - 1.0)) as u32).min(texture.height - 1);
+        texture.get_pixel_color(x, y)
+    } else {
+        self.diffuse
     }
+}
+
 }
 
