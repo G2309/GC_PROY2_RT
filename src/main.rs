@@ -46,23 +46,22 @@ pub fn cast_ray(
         }
     }
 
-    let is_daytime = is_day;
     if !intersect.is_intersecting {
-        return if is_daytime { DAY_SKY_COLOR } else { NIGHT_SKY_COLOR };
+        return if is_day { DAY_SKY_COLOR } else { NIGHT_SKY_COLOR };
     }
 
     let light_dir = (light.position - intersect.point).normalize();
     let view_dir = (ray_origin - intersect.point).normalize();
     let reflect_dir = reflect(&-light_dir, &intersect.normal).normalize();
 
-    let shadow_intensity = cast_shadow(&intersect, light, objects);
+    let shadow_intensity = cast_shadow(&intersect, light, objects) * if is_day { 1.0 } else { 0.5 };
     let light_intensity = light.intensity * (1.0 - shadow_intensity);
 
     const DEFAULT_CUBE_SIZE: f32 = 0.5; 
     let uv = calculate_uv(intersect.normal, intersect.point, DEFAULT_CUBE_SIZE);
 
     let texture_diffuse = intersect.material.texture.as_ref().map_or(intersect.material.diffuse, |texture| {
-    texture.sample(uv)
+        texture.sample(uv)
     });
 
     let diffuse_intensity = intersect.normal.dot(&light_dir).max(0.0).min(1.0);
@@ -71,14 +70,15 @@ pub fn cast_ray(
     let specular_intensity = view_dir.dot(&reflect_dir).max(0.0).powf(intersect.material.specular);
     let specular = light.color * intersect.material.albedo[1] * specular_intensity * light_intensity;
 
-    let mut reflect_color = Color::new(0,0,0);
+    let mut reflect_color = Color::new(0, 0, 0);
     let reflectivity = intersect.material.albedo[2];
     if reflectivity > 0.0 {
         let reflect_dir = reflect(&ray_direction, &intersect.normal).normalize();
         let reflect_origin = offset_origin(&intersect, &reflect_dir);
         reflect_color = cast_ray(&reflect_origin, &reflect_dir, objects, light, depth + 1, is_day);
     }
-    let mut refract_color = Color::new(0,0,0);
+
+    let mut refract_color = Color::new(0, 0, 0);
     let transparency = intersect.material.albedo[3];
     if transparency > 0.0 {
         let refract_dir = refract(&ray_direction, &intersect.normal, intersect.material.refractive_index);
@@ -86,9 +86,15 @@ pub fn cast_ray(
         refract_color = cast_ray(&refract_origin, &refract_dir, objects, light, depth + 1, is_day);
     }
 
+    let ambient_light = if is_day { 0.2 } else { 0.05 }; // Luz ambiental
+    let ambient = Color::new(20, 20, 40) * ambient_light;
+
     let emissive = intersect.material.emmisive_color;
 
-    (diffuse + specular) * (1.0 - reflectivity - transparency) + (reflect_color * reflectivity) + (refract_color * transparency) + emissive
+    (diffuse + specular + ambient) * (1.0 - reflectivity - transparency)
+        + (reflect_color * reflectivity)
+        + (refract_color * transparency)
+        + emissive
 }
 
 pub fn render(framebuffer: &mut FrameBuffer, objects: &[Box<dyn RayIntersect>], pov: &POV, light: &Light, is_day: bool) {
@@ -141,23 +147,19 @@ fn main() {
     );
 
     let mut light = Light::new(
-        Vec3::new(1.0, 5.0, 5.0),
+        Vec3::new(2.0, 5.0, 5.0),
         Color::new(255, 255, 255),
         1.0
     );
 
-    let rotation_speed = PI/10.0;
+    let rotation_speed = PI / 10.0;
     let mut is_day = true;
-    let mut should_render = false; // Controla cuándo se renderizan los objetos en el framebuffer
 
-    // Renderizar una vez al inicio para tener un primer frame
     render(&mut framebuffer, &objects.as_slice(), &pov, &light, is_day);
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-
-        // Control de la cámara y la luz
         if window.is_key_down(Key::Left) {
-            pov.orbit(rotation_speed, 0.0); 
+            pov.orbit(rotation_speed, 0.0);
         }
         if window.is_key_down(Key::Right) {
             pov.orbit(-rotation_speed, 0.0);
@@ -169,37 +171,26 @@ fn main() {
             pov.orbit(0.0, rotation_speed);
         }
         if window.is_key_down(Key::W) {
-            pov.zoom(0.4); 
+            pov.zoom(0.4);
         }
         if window.is_key_down(Key::S) {
-            pov.zoom(-0.4); 
+            pov.zoom(-0.4);
         }
 
-        // Cambiar entre día y noche
         if window.is_key_down(Key::T) {
-            is_day = !is_day; 
+            is_day = !is_day;
             if is_day {
-                light.position = Vec3::new(2.0, 5.0, 5.0); 
-                light.color = Color::new(255, 255, 255); 
+                light.position = Vec3::new(2.0, 5.0, 5.0);
+                light.color = Color::new(255, 255, 200);
+                light.intensity = 1.0;
             } else {
-                light.position = Vec3::new(-2.0, 5.0, 5.0); 
-                light.color = Color::new(100, 100, 200); 
+                light.position = Vec3::new(-2.0, 2.0, -3.0);
+                light.color = Color::new(100, 100, 200);
+                light.intensity = 0.2;
             }
-        }
-
-        // Controlar el renderizado de objetos con la tecla R
-        if window.is_key_down(Key::R) {
-            should_render = true;  // Activar renderizado de objetos
-        } else {
-            should_render = false; // Desactivar cuando no se presiona 'R'
-        }
-
-        // Renderizar objetos solo si `should_render` es true
-        if should_render {
             render(&mut framebuffer, &objects.as_slice(), &pov, &light, is_day);
         }
 
-        // Actualizar el framebuffer en la ventana siempre
         window
             .update_with_buffer(&framebuffer.as_u32_buffer(), framebuffer_width, framebuffer_height)
             .unwrap();
