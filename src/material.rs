@@ -10,6 +10,7 @@ pub struct Material {
     pub refractive_index: f32,
     pub texture: Option<Rc<Texture>>,
     pub emmisive_color: Color,
+    pub emmisive_intensity: f32,
 }
 
 impl Material {
@@ -20,6 +21,7 @@ impl Material {
         refractive_index: f32,
         texture: Option<Rc<Texture>>, 
         emmisive_color: Color,
+        emmisive_intensity: f32,
     ) -> Self {
         Material {
             diffuse,
@@ -28,6 +30,7 @@ impl Material {
             refractive_index,
             texture,
             emmisive_color,
+            emmisive_intensity
         }
     }
 
@@ -39,6 +42,7 @@ impl Material {
             refractive_index: 0.0,
             texture: None,
             emmisive_color: Color::new(0, 0, 0),
+            emmisive_intensity: 0.0,
         }
     }
 

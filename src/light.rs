@@ -50,16 +50,15 @@ pub fn cast_shadow(
     objects: &[Box<dyn RayIntersect>],
 ) -> f32 {
     let light_dir = (light.position - intersect.point).normalize();
-    let light_distance = (light.position - intersect.point).magnitude();
     let shadow_ray_origin = offset_origin(intersect, &light_dir);
     let mut shadow_intensity = 0.0;
     for object in objects {
         let shadow_intersect = object.ray_intersect(&shadow_ray_origin, &light_dir);
-        if shadow_intersect.is_intersecting && shadow_intersect.distance < light_distance {
-            let distance_ratio = shadow_intersect.distance / light_distance;
-            shadow_intensity = 1.0 - distance_ratio.powf(2.0).min(1.0);
-            break;
+        if shadow_intersect.is_intersecting {
+            let emmisive_intensity = 0.2;
+            shadow_intensity += emmisive_intensity;
         }
+        break;
     }
     shadow_intensity
 }
@@ -68,6 +67,51 @@ pub fn calculate_uv(normal: Vec3, point: Vec3, cube_size: f32) -> (f32, f32) {
     let u = ((point.x / cube_size) + 0.5) % 1.0;
     let v = ((point.y / cube_size) + 0.5) % 1.0;
     (u.abs(), v.abs())
+}
+
+pub fn calculate_emissive_lighting(
+    intersect: &Intersect,
+    objects: &[Box<dyn RayIntersect>],
+) -> Color {
+    let mut total_emission = Color::new(0, 0, 0);
+    for object in objects {
+        let object_intersect = object.ray_intersect(&intersect.point, &intersect.normal);
+
+        // Si el objeto es intersectado y es emisivo, sumamos su emisión.
+        if object_intersect.is_intersecting {
+            let material = &object_intersect.material;
+            if material.emmisive_intensity > 0.0 {
+                let direction_to_light = (object_intersect.point - intersect.point).normalize();
+                let distance = (object_intersect.point - intersect.point).magnitude();
+
+                // Atenuación basada en la distancia
+                let attenuation = 1.0 / (distance * distance);
+
+                // Contribución al color final
+                let emission = material.emmisive_color * material.emmisive_intensity * attenuation;
+                total_emission = total_emission + emission;
+            }
+        }
+    }
+    total_emission
+}
+
+pub fn calculate_lighting(
+    intersect: &Intersect,
+    light: &Light,
+    objects: &[Box<dyn RayIntersect>],
+) -> Color {
+    let mut lighting = Color::new(0, 0, 0);
+    let shadow_intensity = cast_shadow(intersect, light, objects);
+    if shadow_intensity > 0.0 {
+        let light_dir = (light.position - intersect.point).normalize();
+        let diffuse_intensity = intersect.normal.dot(&light_dir).max(0.0);
+        lighting = lighting + light.color * light.intensity * diffuse_intensity * shadow_intensity;
+    }
+    let emissive_lighting = calculate_emissive_lighting(intersect, objects);
+    lighting = lighting + emissive_lighting;
+
+    lighting
 }
 
 

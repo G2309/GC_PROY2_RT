@@ -16,19 +16,21 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
     // Material
     let ice = Rc::new(Material::new(
         Color::new(37, 150, 190), 
-        80.0, 
+        50.0, 
         [1.0, 0.6, 0.2, 0.3], 
         0.0, 
         Some(ice_texture), 
         Color::new(5,10,75),
+        0.0
     ));
     let snow = Rc::new(Material::new(
         Color::new(255, 255, 255), 
         5.0, 
-        [1.0, 0.1, 0.0, 0.0], 
+        [1.0, 0.1, 0.075, 0.0], 
         0.0, 
         Some(snow), 
-        Color::new(255,255,255),
+        Color::new(0,0,0),
+        0.0
     ));
     let crying_obsidian = Rc::new(Material::new(
         Color::new(43, 1, 120), 
@@ -37,14 +39,16 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
         1.7, 
         Some(crying_obsidian_texture), 
         Color::new(131,8,228),
+        2.0
     ));
     let  redstone_lamp = Rc::new(Material::new(
         Color::new(231, 183, 119), 
-        8.0, 
-        [0.9, 0.6, 0.0, 0.0], 
+        5.0, 
+        [0.9, 0.4, 0.0, 0.0], 
         0.0, 
         Some(redstone_lamp_texture), 
         Color::new(255,57,0),
+        10.0
     ));
 
 
