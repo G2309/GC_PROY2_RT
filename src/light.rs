@@ -96,6 +96,7 @@ pub fn calculate_emissive_lighting(
     total_emission
 }
 
+
 pub fn calculate_lighting(
     intersect: &Intersect,
     light: &Light,

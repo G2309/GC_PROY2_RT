@@ -18,7 +18,7 @@ use crate::color::Color;
 use crate::ray_intersect::{Intersect, RayIntersect};
 use crate::framebuffer::FrameBuffer;
 use crate::pov::POV;
-use crate::light::{Light, refract, reflect, offset_origin, calculate_uv, cast_shadow };
+use crate::light::{Light, refract, reflect, offset_origin, calculate_uv, cast_shadow, calculate_lighting};
 
 const DAY_SKY_COLOR: Color = Color::new(68, 142, 228);
 const NIGHT_SKY_COLOR: Color = Color::new(25, 25, 112);
@@ -85,17 +85,15 @@ pub fn cast_ray(
         let refract_origin = offset_origin(&intersect, &refract_dir);
         refract_color = cast_ray(&refract_origin, &refract_dir, objects, light, depth + 1, is_day);
     }
-
     let ambient_light = if is_day { 0.2 } else { 0.05 }; // Luz ambiental
     let ambient = Color::new(20, 20, 40) * ambient_light;
-
-    // Se ajusta el color emisivo según la intensidad emisiva
     let emissive = intersect.material.emmisive_color * intersect.material.emmisive_intensity;
+    let lightning = calculate_lighting(&intersect, light, objects);
 
     (diffuse + specular + ambient) * (1.0 - reflectivity - transparency)
         + (reflect_color * reflectivity)
         + (refract_color * transparency)
-        + emissive
+        + lightning + emissive
 }
 
 pub fn render(framebuffer: &mut FrameBuffer, objects: &[Box<dyn RayIntersect>], pov: &POV, light: &Light, is_day: bool) {
