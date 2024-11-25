@@ -89,7 +89,8 @@ pub fn cast_ray(
     let ambient_light = if is_day { 0.2 } else { 0.05 }; // Luz ambiental
     let ambient = Color::new(20, 20, 40) * ambient_light;
 
-    let emissive = intersect.material.emmisive_color;
+    // Se ajusta el color emisivo según la intensidad emisiva
+    let emissive = intersect.material.emmisive_color * intersect.material.emmisive_intensity;
 
     (diffuse + specular + ambient) * (1.0 - reflectivity - transparency)
         + (reflect_color * reflectivity)
