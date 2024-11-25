@@ -39,7 +39,7 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
         1.7, 
         Some(crying_obsidian_texture), 
         Color::new(131,8,228),
-        2.0
+        0.60
     ));
     let  redstone_lamp = Rc::new(Material::new(
         Color::new(231, 183, 119), 
@@ -47,8 +47,8 @@ pub fn create_diorama() -> Vec<Box<dyn RayIntersect>> {
         [0.9, 0.4, 0.0, 0.0], 
         0.0, 
         Some(redstone_lamp_texture), 
-        Color::new(255,57,0),
-        10.0
+        Color::new(247,80,29),
+        1.10
     ));
 
 
