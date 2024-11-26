@@ -1,8 +1,16 @@
-# Proyecto 2 - RayTraicing
+# Proyecto 2 - ArchBTWing
 ---
 Gustavo Adolfo Cruz Bardales
 #22779
-Gráficas por Computadora
+## Fotos del proyecto
+---
+!(Foto)[./images/1.jpg]
+!(Foto)[./images/2.jpg]
+!(Foto)[./images/3.jpg]
+!(Foto)[./images/4.jpg]
+!(Foto)[./images/5.jpg]
+!(Foto)[./images/6.jpg]
+
 ---
 ## Dependencias
 - Cargo

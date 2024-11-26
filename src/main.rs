@@ -20,7 +20,7 @@ use crate::framebuffer::FrameBuffer;
 use crate::pov::POV;
 use crate::light::{Light, refract, reflect, offset_origin, calculate_uv, cast_shadow, calculate_lighting};
 
-const DAY_SKY_COLOR: Color = Color::new(68, 142, 228);
+const DAY_SKY_COLOR: Color = Color::new(78, 132, 228);
 const NIGHT_SKY_COLOR: Color = Color::new(25, 25, 112);
 
 pub fn cast_ray(
@@ -183,9 +183,10 @@ fn main() {
                 light.color = Color::new(255, 255, 200);
                 light.intensity = 1.0;
             } else {
-                light.position = Vec3::new(-2.0, 2.0, -3.0);
+                light.position = Vec3::new(2.0, 5.0, 5.0);
+                //light.position = Vec3::new(-2.0, 2.0, -3.0);
                 light.color = Color::new(100, 100, 200);
-                light.intensity = 0.2;
+                light.intensity = 0.1;
             }
             render(&mut framebuffer, &objects.as_slice(), &pov, &light, is_day);
         }
